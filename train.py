@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split, KFold
 from sklearn.feature_extraction import DictVectorizer
 
-from xgboost import XGBClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, accuracy_score
 
 
@@ -41,11 +41,12 @@ def train(df_train, y_train):
     dv = DictVectorizer(sparse=False)
     X_train = dv.fit_transform(dicts)
 
-    model= XGBClassifier(
-        max_depth=9, n_estimators=149, 
-        learning_rate=0.06701465630034122, 
-        subsample=0.6531573257784621,
-        abs=False, eval_metric='mlogloss')
+    model= RandomForestClassifier(
+        n_estimators=22,
+        max_depth=11,
+        min_samples_split=8,
+        min_samples_leaf=2,
+        random_state=42)
     
     model.fit(X_train, y_train)
     
