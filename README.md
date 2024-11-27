@@ -72,3 +72,68 @@ python predict-test.py
 ```
 
 This script sends a sample loan application to the API and returns a prediction (approved or not approved).
+
+# Deploying the Docker Container to AWS
+To deploy the Docker container to the AWS cloud, follow these steps:
+
+*Prerequisites*:
+1. AWS Account with access to Amazon Elastic Container Service (ECS) or Elastic Beanstalk.
+2. AWS CLI installed and configured on your local machine.
+3. Docker installed on your system.
+
+Step 1: Authenticate Docker with AWS Elastic Container Registry (ECR)
+1. Log in to AWS from your terminal:
+
+```bash
+aws configure
+```
+Enter your AWS credentials and default region.
+
+2. Create an ECR repository (replace <repository-name> with your desired name):
+```bash
+aws ecr create-repository --repository-name <repository-name>
+```
+
+3. Authenticate Docker to your AWS account:
+
+```bash
+aws ecr get-login-password --region <your-region> | docker login --username AWS --password-stdin <aws_account_id>.dkr.ecr.<your-region>.amazonaws.com
+```
+
+Step 2: Tag and Push the Docker Image to ECR
+1. Tag your Docker image:
+
+```bash
+docker tag loan_approval:latest <aws_account_id>.dkr.ecr.<your-region>.amazonaws.com/<repository-name>:latest
+```
+
+2. Push the Docker image to ECR:
+
+```bash
+docker push <aws_account_id>.dkr.ecr.<your-region>.amazonaws.com/<repository-name>:latest
+```
+
+Step 3: Deploy the Image to ECS (Elastic Container Service)
+1. Create a new ECS cluster:
+
+```bash
+aws ecs create-cluster --cluster-name loan-approval-cluster
+```
+
+2. Register a new task definition for your container:
+
+```bash
+aws ecs register-task-definition --cli-input-json file://ecs-task-definition.json
+```
+*(You need to create an ecs-task-definition.json file with the appropriate task definition, including the image URI and port mappings.)*
+
+3. Run the container as a service:
+
+```bash
+aws ecs create-service --cluster loan-approval-cluster --service-name loan-approval-service --task-definition loan-approval-task --desired-count 1 --launch-type FARGATE
+```
+
+Step 4: Access the Application
+Once the service is running, you can access the API through the public endpoint provided by the ECS service.
+
+By following these steps, the model will be deployed and accessible via the AWS cloud.
